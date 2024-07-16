@@ -17,10 +17,13 @@ func init() {
 
 func main() {
 	uri, exist := os.LookupEnv("DATABASE_URI")
-	port := ":5000"
+	port, portExist := os.LookupEnv("PORT")
 
 	if !exist {
 		log.Fatal("No connection uri")
+	}
+	if !portExist {
+		log.Fatal("No port specified")
 	}
 
 	store := store.Connect(uri)
