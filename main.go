@@ -27,7 +27,11 @@ func main() {
 	}
 
 	store := store.Connect(uri)
-	api := api.NewAPI(port, store)
+	api := api.NewAPI(
+		port,
+		store,
+		"http://localhost:3000, https://how-to-navigate.ru, https://how-to-navigate.ru:2053/",
+	)
 
 	defer store.Disconnect()
 
