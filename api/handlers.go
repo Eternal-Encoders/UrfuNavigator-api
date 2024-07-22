@@ -3,6 +3,7 @@ package api
 import (
 	"container/heap"
 	"log"
+	"strings"
 	"urfunavigator/index/models"
 	"urfunavigator/index/utils"
 
@@ -264,4 +265,20 @@ func (s *API) PathHandler(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(utils.RestorePath(paths, start, end))
+}
+
+func (s *API) ObjectHandler(c *fiber.Ctx) error {
+	iconName := c.Params("icon")
+	if !strings.HasSuffix(iconName, ".svg") {
+		log.Println("Request Object with unsupported type")
+		return c.Status(fiber.StatusBadRequest).SendString("This file type is not supported")
+	}
+
+	obj, err := s.ObjectStore.GetFile(iconName)
+	if err != nil {
+		log.Println(err)
+		return c.Status(fiber.StatusBadRequest).SendString("Cannot get file from Object Storage")
+	}
+
+	return c.Send(obj)
 }
