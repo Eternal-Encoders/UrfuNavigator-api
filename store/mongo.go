@@ -17,7 +17,7 @@ type MongoDB struct {
 	Database *mongo.Database
 }
 
-func Connect(uri string) *MongoDB {
+func Connect(uri string, collection string) *MongoDB {
 	dbOptions := options.Client().ApplyURI(uri)
 	client, err := mongo.Connect(context.TODO(), dbOptions)
 
@@ -27,7 +27,7 @@ func Connect(uri string) *MongoDB {
 
 	return &MongoDB{
 		Client:   client,
-		Database: client.Database("Navigator"),
+		Database: client.Database(collection),
 	}
 }
 

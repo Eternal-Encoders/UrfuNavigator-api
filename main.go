@@ -18,15 +18,18 @@ func init() {
 
 func main() {
 	uri, exist := os.LookupEnv("DATABASE_URI")
+	collection, collectionExist := os.LookupEnv("DATABASE_COLLECTION")
 	port, portExist := os.LookupEnv("PORT")
 	s3Endpoint, s3EndpointExist := os.LookupEnv("BUCKET_ENDPOINT")
 	s3Access, s3AccessExist := os.LookupEnv("BUCKET_ACCESS_KEY")
 	s3Secret, s3SecretExist := os.LookupEnv("BUCKET_SECRET_KEY")
-
-	bucketName := "navigator"
+	bucketName, bucketNameExist := os.LookupEnv("BUCKET_NAME")
 
 	if !exist {
 		log.Fatal("No connection uri")
+	}
+	if !collectionExist {
+		log.Fatal("No collection specified")
 	}
 	if !portExist {
 		log.Fatal("No port specified")
@@ -40,8 +43,11 @@ func main() {
 	if !s3SecretExist {
 		log.Fatal("No s3 secret key specified")
 	}
+	if !bucketNameExist {
+		log.Fatal("No s3 bucket specified")
+	}
 
-	store := store.Connect(uri)
+	store := store.Connect(uri, collection)
 	objectStore := object.Connect(s3Endpoint, s3Access, s3Secret, bucketName)
 	api := api.NewAPI(
 		port,
