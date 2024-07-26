@@ -26,7 +26,17 @@ func main() {
 	bucketName, bucketNameExist := os.LookupEnv("BUCKET_NAME")
 
 	if !exist {
-		log.Fatal("No connection uri")
+		file, fileExist := os.LookupEnv("DATABASE_URI_FILE")
+
+		if !fileExist {
+			log.Fatal("No connection uri")
+		}
+
+		data, err := os.ReadFile(file)
+		if err != nil {
+			log.Fatal(err)
+		}
+		uri = string(data)
 	}
 	if !collectionExist {
 		log.Fatal("No collection specified")
@@ -38,10 +48,30 @@ func main() {
 		log.Fatal("No s3 endpoint specified")
 	}
 	if !s3AccessExist {
-		log.Fatal("No s3 access key specified")
+		file, fileExist := os.LookupEnv("BUCKET_ACCESS_KEY")
+
+		if !fileExist {
+			log.Fatal("No s3 access key specified")
+		}
+
+		data, err := os.ReadFile(file)
+		if err != nil {
+			log.Fatal(err)
+		}
+		s3Access = string(data)
 	}
 	if !s3SecretExist {
-		log.Fatal("No s3 secret key specified")
+		file, fileExist := os.LookupEnv("BUCKET_SECRET_KEY")
+
+		if !fileExist {
+			log.Fatal("No s3 secret key specified")
+		}
+
+		data, err := os.ReadFile(file)
+		if err != nil {
+			log.Fatal(err)
+		}
+		s3Secret = string(data)
 	}
 	if !bucketNameExist {
 		log.Fatal("No s3 bucket specified")
