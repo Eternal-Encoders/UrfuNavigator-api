@@ -48,7 +48,7 @@ func main() {
 		log.Fatal("No s3 endpoint specified")
 	}
 	if !s3AccessExist {
-		file, fileExist := os.LookupEnv("BUCKET_ACCESS_KEY")
+		file, fileExist := os.LookupEnv("BUCKET_ACCESS_KEY_FILE")
 
 		if !fileExist {
 			log.Fatal("No s3 access key specified")
@@ -61,7 +61,7 @@ func main() {
 		s3Access = string(data)
 	}
 	if !s3SecretExist {
-		file, fileExist := os.LookupEnv("BUCKET_SECRET_KEY")
+		file, fileExist := os.LookupEnv("BUCKET_SECRET_KEY_FILE")
 
 		if !fileExist {
 			log.Fatal("No s3 secret key specified")
