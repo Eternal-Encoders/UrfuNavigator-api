@@ -83,7 +83,7 @@ func main() {
 		port,
 		store,
 		objectStore,
-		"http://localhost:3000, https://how-to-navigate.ru, https://how-to-navigate.ru:2053/",
+		"http://localhost:3000, https://how-to-navigate.ru, https://dev.how-to-navigate.ru",
 	)
 
 	defer store.Disconnect()

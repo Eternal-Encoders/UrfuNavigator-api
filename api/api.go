@@ -39,6 +39,7 @@ func (s *API) Run() error {
 	app.Get("/institutes", s.InstitutesHandler)
 	app.Get("/points", s.PointsHandler)
 	app.Get("/point", s.PointIdHandler)
+	app.Get("/path", s.PathHandler)
 	app.Get("/icons/:icon", s.ObjectHandler)
 
 	return app.Listen(s.Port)

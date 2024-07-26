@@ -17,7 +17,7 @@ type MinIOS3 struct {
 func Connect(endpoint string, access string, secret string, bucketName string) *MinIOS3 {
 	option := &minio.Options{
 		Creds:  credentials.NewStaticV4(access, secret, ""),
-		Secure: false,
+		Secure: true,
 	}
 	minioClient, err := minio.New(endpoint, option)
 
@@ -35,7 +35,6 @@ func (s *MinIOS3) GetFile(fileName string) ([]byte, error) {
 	option := minio.GetObjectOptions{}
 
 	file, err := s.Client.GetObject(context.TODO(), s.BucketName, fileName, option)
-
 	if err != nil {
 		return nil, err
 	}
@@ -47,10 +46,11 @@ func (s *MinIOS3) GetFile(fileName string) ([]byte, error) {
 	for {
 		_, err := file.Read(buf)
 		res = append(res, buf...)
-		if err == io.EOF {
-			break
+		if err != nil {
+			if err != io.EOF {
+				return nil, err
+			}
+			return res, nil
 		}
 	}
-
-	return res, nil
 }
