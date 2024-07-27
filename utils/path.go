@@ -56,7 +56,13 @@ func RestorePath(path map[string]models.GraphPoint, start models.GraphPoint, end
 	prevFloor := -1000
 
 	for current.Id != start.Id {
-		lastPathIndex := len(result[current.Floor]) - 1
+		lastPathIndex := 0
+		if len(result[current.Floor]) == 0 {
+			result[current.Floor] = [][]models.GraphPoint{{}}
+		} else {
+			lastPathIndex = len(result[current.Floor]) - 1
+		}
+
 		result[current.Floor][lastPathIndex] = append(result[current.Floor][lastPathIndex], current)
 
 		prevFloor = current.Floor

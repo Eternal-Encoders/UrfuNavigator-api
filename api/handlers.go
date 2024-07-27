@@ -240,14 +240,14 @@ func (s *API) PathHandler(c *fiber.Ctx) error {
 		currentPoint := graph[current.Value.Floor][current.Value.Id]
 		neighbours := utils.GetNeighbours(currentPoint, stairs)
 		for _, next := range neighbours {
-			nextGraphFloor, nextGraphFloorExist := graph[next.Floor]
+			nextGraphFloor, nextGraphFloorExist := graph[next.Value.Floor]
 			if !nextGraphFloorExist {
-				graphFloor, floorGraphErr := s.Store.GetGraph(start.Floor, start.Institute)
+				graphFloor, floorGraphErr := s.Store.GetGraph(next.Value.Floor, start.Institute)
 				if floorGraphErr != nil {
 					log.Println(floorGraphErr)
 					return c.Status(fiber.StatusInternalServerError).SendString("Something went wrong in fetching graph")
 				}
-				graph[next.Floor] = graphFloor
+				graph[next.Value.Floor] = graphFloor
 				nextGraphFloor = graphFloor
 			}
 

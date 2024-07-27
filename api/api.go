@@ -28,7 +28,7 @@ func (s *API) Run() error {
 	app := fiber.New()
 
 	cors := cors.New(cors.Config{
-		AllowOrigins: "http://localhost:3000, https://how-to-navigate.ru, https://how-to-navigate.ru:2053/",
+		AllowOrigins: s.AllowedOrigins,
 	})
 
 	app.Use(cors)
