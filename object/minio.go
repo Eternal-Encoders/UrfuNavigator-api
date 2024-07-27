@@ -41,11 +41,11 @@ func (s *MinIOS3) GetFile(fileName string) ([]byte, error) {
 
 	defer file.Close()
 
-	buf := make([]byte, 4)
+	buf := make([]byte, 8)
 	res := []byte{}
 	for {
-		_, err := file.Read(buf)
-		res = append(res, buf...)
+		i, err := file.Read(buf)
+		res = append(res, buf[:i]...)
 		if err != nil {
 			if err != io.EOF {
 				return nil, err
