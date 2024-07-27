@@ -280,5 +280,6 @@ func (s *API) ObjectHandler(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).SendString("Cannot get file from Object Storage")
 	}
 
+	c.Attachment(iconName)
 	return c.Send(obj)
 }
