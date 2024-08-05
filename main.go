@@ -20,6 +20,7 @@ func main() {
 	uri, exist := os.LookupEnv("DATABASE_URI")
 	collection, collectionExist := os.LookupEnv("DATABASE_COLLECTION")
 	port, portExist := os.LookupEnv("PORT")
+	cors, corsExist := os.LookupEnv("CORS")
 	s3Endpoint, s3EndpointExist := os.LookupEnv("BUCKET_ENDPOINT")
 	s3Access, s3AccessExist := os.LookupEnv("BUCKET_ACCESS_KEY")
 	s3Secret, s3SecretExist := os.LookupEnv("BUCKET_SECRET_KEY")
@@ -43,6 +44,9 @@ func main() {
 	}
 	if !portExist {
 		log.Fatal("No port specified")
+	}
+	if !corsExist {
+		log.Fatal("Cors policy not specified")
 	}
 	if !s3EndpointExist {
 		log.Fatal("No s3 endpoint specified")
@@ -83,7 +87,7 @@ func main() {
 		port,
 		store,
 		objectStore,
-		"http://localhost:3000, https://how-to-navigate.ru, https://dev.how-to-navigate.ru",
+		cors,
 	)
 
 	defer store.Disconnect()
