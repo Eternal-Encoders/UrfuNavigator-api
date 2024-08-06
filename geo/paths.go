@@ -1,6 +1,8 @@
-package utils
+package geo
 
 import (
+	"container/heap"
+	"errors"
 	"math"
 	"urfunavigator/index/models"
 )
@@ -81,4 +83,77 @@ func RestorePath(path map[string]models.GraphPoint, start models.GraphPoint, end
 	result[current.Floor][len(result[current.Floor])-1] = append(result[current.Floor][len(result[current.Floor])-1], start)
 
 	return result
+}
+
+func AStarSearch(
+	start models.GraphPoint,
+	end models.GraphPoint,
+	floor_fn getFloor,
+	stairs_fn getStairs,
+) (map[int][][]models.GraphPoint, error) {
+	if start.Institute != end.Institute {
+		return nil, errors.New("institutes of start and end point must be equale")
+	}
+
+	floorGraph, floorGraphErr := floor_fn(start.Floor, start.Institute)
+	stairs, stairErr := stairs_fn(start.Institute)
+	if floorGraphErr != nil {
+		return nil, floorGraphErr
+	}
+	if stairErr != nil {
+		return nil, stairErr
+	}
+
+	toVisit := models.PriorityQueue{}
+	paths := make(map[string]models.GraphPoint)
+	costs := make(map[string]float64)
+
+	heap.Init(&toVisit)
+
+	graph := map[int]map[string]models.GraphPoint{
+		start.Floor: floorGraph,
+	}
+
+	heap.Push(&toVisit, &models.QueueItem{
+		Value: models.QueueItemValue{
+			Id:    start.Id,
+			Floor: start.Floor,
+		},
+		Priority: 0,
+	})
+	costs[start.Id] = 0
+
+	for len(toVisit) != 0 {
+		current := heap.Pop(&toVisit).(*models.QueueItem)
+		if current.Value.Id == end.Id {
+			break
+		}
+
+		currentPoint := graph[current.Value.Floor][current.Value.Id]
+		neighbours := GetNeighbours(currentPoint, stairs)
+		for _, next := range neighbours {
+			nextGraphFloor, nextGraphFloorExist := graph[next.Value.Floor]
+			if !nextGraphFloorExist {
+				graphFloor, floorGraphErr := floor_fn(next.Value.Floor, start.Institute)
+				if floorGraphErr != nil {
+					return nil, floorGraphErr
+				}
+				graph[next.Value.Floor] = graphFloor
+				nextGraphFloor = graphFloor
+			}
+
+			nextPoint := nextGraphFloor[next.Value.Id]
+			newCost := costs[currentPoint.Id] + GraphCost(currentPoint, nextPoint)
+
+			lastCost, isVisited := costs[nextPoint.Id]
+			if !isVisited || newCost < lastCost {
+				costs[nextPoint.Id] = newCost
+				next.Priority = int(newCost) + int(Heuristic(end, nextPoint))
+				heap.Push(&toVisit, &next)
+				paths[nextPoint.Id] = currentPoint
+			}
+		}
+	}
+
+	return RestorePath(paths, start, end), nil
 }

@@ -233,3 +233,12 @@ func (s *MongoDB) GetPoint(id string) (models.GraphPoint, error) {
 
 	return result, err
 }
+
+func (s *MongoDB) GetEnters(institute string) ([]models.GraphPoint, error) {
+	pointsFilter := []models.PointsFilters{
+		models.GetPointsFilter("types", bson.M{"$in": []string{"exit"}}, true),
+		models.GetPointsFilter("institute", institute, true),
+	}
+
+	return s.GetPoints(pointsFilter, 4)
+}

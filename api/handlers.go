@@ -1,11 +1,9 @@
 package api
 
 import (
-	"container/heap"
 	"log"
 	"strings"
 	"urfunavigator/index/models"
-	"urfunavigator/index/utils"
 
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/bson"
@@ -186,85 +184,30 @@ func (s *API) PathHandler(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).SendString("Request must contain from and to query parameters")
 	}
 
-	toVisit := models.PriorityQueue{}
-	paths := make(map[string]models.GraphPoint)
-	costs := make(map[string]float64)
-
-	heap.Init(&toVisit)
-
 	start, startErr := s.Store.GetPoint(from)
 	end, endErr := s.Store.GetPoint(to)
 	if startErr != nil {
 		log.Println(startErr)
-		return c.Status(fiber.StatusInternalServerError).SendString("Something went wrong in fetching from point")
+		return c.Status(fiber.StatusInternalServerError).SendString(startErr.Error())
 	}
 	if endErr != nil {
 		log.Println(endErr)
-		return c.Status(fiber.StatusInternalServerError).SendString("Something went wrong in fetching to point")
-	}
-	if start.Institute != end.Institute {
-		log.Println("Attempt to find path between point in different institutes")
-		return c.Status(fiber.StatusInternalServerError).SendString("Both point must belong to same institute")
+		return c.Status(fiber.StatusInternalServerError).SendString(endErr.Error())
 	}
 
-	floorGraph, floorGraphErr := s.Store.GetGraph(start.Floor, start.Institute)
-	stairs, stairErr := s.Store.GetStairs(start.Institute)
-	if floorGraphErr != nil {
-		log.Println(floorGraphErr)
-		return c.Status(fiber.StatusInternalServerError).SendString("Something went wrong in fetching graph")
-	}
-	if stairErr != nil {
-		log.Println(floorGraphErr)
-		return c.Status(fiber.StatusInternalServerError).SendString("Something went wrong in fetching stairs")
-	}
-
-	graph := map[int]map[string]models.GraphPoint{
-		start.Floor: floorGraph,
+	path, pathErr := s.GEoService.FindPath(
+		start,
+		end,
+		s.Store.GetGraph,
+		s.Store.GetStairs,
+		s.Store.GetEnters,
+	)
+	if pathErr != nil {
+		log.Println(pathErr)
+		return c.Status(fiber.StatusInternalServerError).SendString(pathErr.Error())
 	}
 
-	heap.Push(&toVisit, &models.QueueItem{
-		Value: models.QueueItemValue{
-			Id:    start.Id,
-			Floor: start.Floor,
-		},
-		Priority: 0,
-	})
-	costs[start.Id] = 0
-
-	for len(toVisit) != 0 {
-		current := heap.Pop(&toVisit).(*models.QueueItem)
-		if current.Value.Id == end.Id {
-			break
-		}
-
-		currentPoint := graph[current.Value.Floor][current.Value.Id]
-		neighbours := utils.GetNeighbours(currentPoint, stairs)
-		for _, next := range neighbours {
-			nextGraphFloor, nextGraphFloorExist := graph[next.Value.Floor]
-			if !nextGraphFloorExist {
-				graphFloor, floorGraphErr := s.Store.GetGraph(next.Value.Floor, start.Institute)
-				if floorGraphErr != nil {
-					log.Println(floorGraphErr)
-					return c.Status(fiber.StatusInternalServerError).SendString("Something went wrong in fetching graph")
-				}
-				graph[next.Value.Floor] = graphFloor
-				nextGraphFloor = graphFloor
-			}
-
-			nextPoint := nextGraphFloor[next.Value.Id]
-			newCost := costs[currentPoint.Id] + utils.GraphCost(currentPoint, nextPoint)
-
-			lastCost, isVisited := costs[nextPoint.Id]
-			if !isVisited || newCost < lastCost {
-				costs[nextPoint.Id] = newCost
-				next.Priority = int(newCost) + int(utils.Heuristic(end, nextPoint))
-				heap.Push(&toVisit, &next)
-				paths[nextPoint.Id] = currentPoint
-			}
-		}
-	}
-
-	return c.JSON(utils.RestorePath(paths, start, end))
+	return c.JSON(path)
 }
 
 func (s *API) ObjectHandler(c *fiber.Ctx) error {

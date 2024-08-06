@@ -1,6 +1,7 @@
 package api
 
 import (
+	"urfunavigator/index/geo"
 	"urfunavigator/index/object"
 	"urfunavigator/index/store"
 
@@ -12,14 +13,16 @@ type API struct {
 	Port           string
 	Store          store.Store
 	ObjectStore    object.ObjectStore
+	GEoService     geo.Geo
 	AllowedOrigins string
 }
 
-func NewAPI(port string, store store.Store, objectStore object.ObjectStore, allowedOrigins string) *API {
+func NewAPI(port string, store store.Store, objectStore object.ObjectStore, geo geo.Geo, allowedOrigins string) *API {
 	return &API{
 		Port:           port,
 		Store:          store,
 		ObjectStore:    objectStore,
+		GEoService:     geo,
 		AllowedOrigins: allowedOrigins,
 	}
 }

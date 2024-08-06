@@ -14,4 +14,5 @@ type Store interface {
 	GetStairs(institute string) (map[string]models.StairParsed, error)
 	GetPoints(preFilter []models.PointsFilters, limit int) ([]models.GraphPoint, error)
 	GetPoint(id string) (models.GraphPoint, error)
+	GetEnters(institute string) ([]models.GraphPoint, error)
 }

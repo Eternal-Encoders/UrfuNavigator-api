@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"urfunavigator/index/api"
+	"urfunavigator/index/geo"
 	"urfunavigator/index/object"
 	"urfunavigator/index/store"
 
@@ -83,10 +84,12 @@ func main() {
 
 	store := store.Connect(uri, collection)
 	objectStore := object.Connect(s3Endpoint, s3Access, s3Secret, bucketName)
+	geoService := geo.ConnectGeoService()
 	api := api.NewAPI(
 		port,
 		store,
 		objectStore,
+		geoService,
 		cors,
 	)
 
