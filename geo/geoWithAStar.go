@@ -40,8 +40,8 @@ func (g *GeoWithAStar) FindPath(
 		return nil, errors.New("can't find exit in end institute")
 	}
 
-	startPath, startPathErr := AStarSearch(start, endEnters[0], floor_fn, stairs_fn)
-	endPath, endPathErr := AStarSearch(startEnters[0], end, floor_fn, stairs_fn)
+	startPath, startPathErr := AStarSearch(start, startEnters[0], floor_fn, stairs_fn)
+	endPath, endPathErr := AStarSearch(endEnters[0], end, floor_fn, stairs_fn)
 
 	return map[string]map[int][][]models.GraphPoint{
 		start.Institute: startPath,
