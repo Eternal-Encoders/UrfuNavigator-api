@@ -15,4 +15,5 @@ type Store interface {
 	GetPoints(preFilter []models.PointsFilters, limit int) ([]models.GraphPoint, error)
 	GetPoint(id string) (models.GraphPoint, error)
 	GetEnters(institute string) ([]models.GraphPoint, error)
+	GetBySearchEngine(name string, length int) ([]models.GraphPoint, error)
 }

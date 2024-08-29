@@ -226,3 +226,34 @@ func (s *API) ObjectHandler(c *fiber.Ctx) error {
 	c.Attachment(iconName)
 	return c.Send(obj)
 }
+
+func (s *API) SearchHandler(c *fiber.Ctx) error {
+	name, nameExist := c.Queries()["name"]
+	_, lengthExist := c.Queries()["length"]
+
+	length := 40
+
+	if !nameExist {
+		log.Println("Request Search without name")
+		return c.Status(fiber.StatusBadRequest).SendString("Request must contain name query parameters")
+	}
+
+	if lengthExist {
+		rawLength := c.QueryInt("length")
+		if rawLength > 40 {
+			rawLength = 40
+		}
+		if rawLength < 1 {
+			rawLength = 1
+		}
+		length = rawLength
+	}
+
+	points, err := s.Store.GetBySearchEngine(name, length)
+	if err != nil {
+		log.Println(err)
+		return c.Status(fiber.StatusInternalServerError).SendString("Something went wrong in Search")
+	}
+
+	return c.JSON(points)
+}

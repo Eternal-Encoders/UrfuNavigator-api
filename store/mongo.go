@@ -242,3 +242,36 @@ func (s *MongoDB) GetEnters(institute string) ([]models.GraphPoint, error) {
 
 	return s.GetPoints(pointsFilter, 4)
 }
+
+func (s *MongoDB) GetBySearchEngine(name string, length int) ([]models.GraphPoint, error) {
+	coll := s.Database.Collection("graph_points")
+
+	searchStage := bson.D{
+		{Key: "$search", Value: bson.D{
+			{Key: "index", Value: "point_search"},
+			{Key: "text", Value: bson.D{
+				{Key: "query", Value: name},
+				{Key: "path", Value: bson.D{
+					{Key: "wildcard", Value: "*"},
+				}},
+			}},
+		}},
+	}
+
+	limitStage := bson.D{{Key: "$limit", Value: length}}
+
+	curs, cursErr := coll.Aggregate(context.TODO(), mongo.Pipeline{searchStage, limitStage})
+
+	if cursErr != nil {
+		return nil, cursErr
+	}
+
+	defer curs.Close(context.TODO())
+
+	var results []models.GraphPoint
+	if err := curs.All(context.TODO(), &results); err != nil {
+		return nil, err
+	}
+
+	return results, nil
+}
