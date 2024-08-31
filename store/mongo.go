@@ -257,10 +257,20 @@ func (s *MongoDB) GetBySearchEngine(name string, length int) ([]models.GraphPoin
 			}},
 		}},
 	}
-
+	matchStage := bson.D{
+		{Key: "$match", Value: bson.D{
+			{Key: "names.0", Value: bson.D{
+				{Key: "$exists", Value: true},
+			}},
+		}},
+	}
 	limitStage := bson.D{{Key: "$limit", Value: length}}
 
-	curs, cursErr := coll.Aggregate(context.TODO(), mongo.Pipeline{searchStage, limitStage})
+	curs, cursErr := coll.Aggregate(context.TODO(), mongo.Pipeline{
+		searchStage,
+		matchStage,
+		limitStage,
+	})
 
 	if cursErr != nil {
 		return nil, cursErr
