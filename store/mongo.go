@@ -249,10 +249,28 @@ func (s *MongoDB) GetBySearchEngine(name string, length int) ([]models.GraphPoin
 	searchStage := bson.D{
 		{Key: "$search", Value: bson.D{
 			{Key: "index", Value: "point_search"},
-			{Key: "text", Value: bson.D{
-				{Key: "query", Value: name},
-				{Key: "path", Value: bson.D{
-					{Key: "wildcard", Value: "*"},
+			{Key: "compound", Value: bson.D{
+				{Key: "must", Value: bson.A{
+					bson.D{
+						{Key: "autocomplete", Value: bson.D{
+							{Key: "query", Value: name},
+							{Key: "path", Value: "names"},
+						}},
+					},
+				}},
+				{Key: "should", Value: bson.A{
+					bson.D{
+						{Key: "text", Value: bson.D{
+							{Key: "query", Value: name},
+							{Key: "path", Value: bson.A{
+								"floor",
+								"info",
+								"institute",
+								"types",
+								"description",
+							}},
+						}},
+					},
 				}},
 			}},
 		}},
