@@ -86,6 +86,7 @@ func main() {
 	objectStore := object.Connect(s3Endpoint, s3Access, s3Secret, bucketName)
 	geoService := geo.ConnectGeoService()
 	api := api.NewAPI(
+		"/api",
 		port,
 		store,
 		objectStore,

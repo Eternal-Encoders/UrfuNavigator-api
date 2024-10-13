@@ -10,6 +10,7 @@ import (
 )
 
 type API struct {
+	DefaultPath    string
 	Port           string
 	Store          store.Store
 	ObjectStore    object.ObjectStore
@@ -17,8 +18,16 @@ type API struct {
 	AllowedOrigins string
 }
 
-func NewAPI(port string, store store.Store, objectStore object.ObjectStore, geo geo.Geo, allowedOrigins string) *API {
+func NewAPI(
+	defaultPath string,
+	port string,
+	store store.Store,
+	objectStore object.ObjectStore,
+	geo geo.Geo,
+	allowedOrigins string,
+) *API {
 	return &API{
+		DefaultPath:    defaultPath,
 		Port:           port,
 		Store:          store,
 		ObjectStore:    objectStore,
@@ -36,15 +45,15 @@ func (s *API) Run() error {
 
 	app.Use(cors)
 
-	app.Get("/", s.MainHandler)
-	app.Get("/floor", s.FloorHandler)
-	app.Get("/institute", s.InstituteHandler)
-	app.Get("/institutes", s.InstitutesHandler)
-	app.Get("/points", s.PointsHandler)
-	app.Get("/point", s.PointIdHandler)
-	app.Get("/search", s.SearchHandler)
-	app.Get("/path", s.PathHandler)
-	app.Get("/icons/:icon", s.ObjectHandler)
+	app.Get(s.DefaultPath+"/", s.MainHandler)
+	app.Get(s.DefaultPath+"/floor", s.FloorHandler)
+	app.Get(s.DefaultPath+"/institute", s.InstituteHandler)
+	app.Get(s.DefaultPath+"/institutes", s.InstitutesHandler)
+	app.Get(s.DefaultPath+"/points", s.PointsHandler)
+	app.Get(s.DefaultPath+"/point", s.PointIdHandler)
+	app.Get(s.DefaultPath+"/search", s.SearchHandler)
+	app.Get(s.DefaultPath+"/path", s.PathHandler)
+	app.Get(s.DefaultPath+"/icons/:icon", s.ObjectHandler)
 
 	return app.Listen(s.Port)
 }
