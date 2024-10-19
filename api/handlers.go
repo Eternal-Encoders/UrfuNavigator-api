@@ -11,21 +11,20 @@ import (
 )
 
 func (s *API) MainHandler(c *fiber.Ctx) error {
+	defer s.Logger.WriteLog(c.IP(), "MainHandler", c.AllParams())
 	return c.SendString("OK")
 }
 
 func (s *API) FloorHandler(c *fiber.Ctx) error {
-	_, floorExist := c.Queries()["floor"]
-	institute, instituteExist := c.Queries()["institute"]
+	defer s.Logger.WriteLog(c.IP(), "FloorHandler", c.Queries())
 
-	floor := c.QueryInt("floor")
-
-	if !floorExist || !instituteExist {
-		log.Println("Request Floor without floor or institute")
+	var query FloorQuery
+	if err := c.QueryParser(&query); err != nil {
+		log.Println(err)
 		return c.Status(fiber.StatusBadRequest).SendString("Request must contain floor and institute query parameters")
 	}
 
-	floorData, err := s.Store.GetFloor(floor, institute)
+	floorData, err := s.Store.GetFloor(query.Floor, query.Institute)
 	if err != nil {
 		log.Println(err)
 		return c.Status(fiber.StatusInternalServerError).SendString("Something went wrong in GetFloor")
@@ -44,14 +43,15 @@ func (s *API) FloorHandler(c *fiber.Ctx) error {
 }
 
 func (s *API) InstituteHandler(c *fiber.Ctx) error {
-	url, urlExist := c.Queries()["url"]
+	defer s.Logger.WriteLog(c.IP(), "InstituteHandler", c.Queries())
 
-	if !urlExist {
-		log.Println("Request Institute without url")
+	var query InstituteQuery
+	if err := c.QueryParser(&query); err != nil {
+		log.Println(err)
 		return c.Status(fiber.StatusBadRequest).SendString("Request must contain url query parameters")
 	}
 
-	instituteData, err := s.Store.GetInstitute(url)
+	instituteData, err := s.Store.GetInstitute(query.Institute)
 	if err != nil {
 		log.Println(err)
 		return c.Status(fiber.StatusInternalServerError).SendString("Something went wrong in GetInstitute")
@@ -83,6 +83,7 @@ func (s *API) InstituteHandler(c *fiber.Ctx) error {
 }
 
 func (s *API) InstitutesHandler(c *fiber.Ctx) error {
+	defer s.Logger.WriteLog(c.IP(), "InstitutesHandler", c.AllParams())
 
 	institutesData, err := s.Store.GetInstitutes()
 	if err != nil {
@@ -123,34 +124,38 @@ func (s *API) InstitutesHandler(c *fiber.Ctx) error {
 }
 
 func (s *API) PointsHandler(c *fiber.Ctx) error {
-	queries := c.Queries()
+	defer s.Logger.WriteLog(c.IP(), "PointsHandler", c.Queries())
 
-	typeParam, typeExist := queries["type"]
-	instituteParam, instituteExist := queries["institute"]
-	_, floorExist := queries["floor"]
-	nameParam, nameExist := queries["name"]
-	_, lengthExist := queries["length"]
+	var query PointsQuery
+	if err := c.QueryParser(&query); err != nil {
+		log.Println(err)
+		return c.Status(fiber.StatusBadRequest).SendString("Something went wrong in QueryParser")
+	}
 
-	floorParam := c.QueryInt("floor")
-	lengthParam := c.QueryInt("length")
-
-	pointsFilter := []models.PointsFilters{
-		models.GetPointsFilter("types", bson.M{"$in": []string{typeParam}}, typeExist),
-		models.GetPointsFilter("institute", instituteParam, instituteExist),
-		models.GetPointsFilter("floor", floorParam, floorExist),
-		models.GetPointsFilter("names", bson.M{
+	pointsFilter := []models.PointsFilters{}
+	if query.Type != nil {
+		pointsFilter = append(pointsFilter, models.GetPointsFilter("types", bson.M{"$in": []string{*query.Type}}))
+	}
+	if query.Institute != nil {
+		pointsFilter = append(pointsFilter, models.GetPointsFilter("institute", *query.Institute))
+	}
+	if query.Floor != nil {
+		pointsFilter = append(pointsFilter, models.GetPointsFilter("floor", *query.Floor))
+	}
+	if query.Name != nil {
+		pointsFilter = append(pointsFilter, models.GetPointsFilter("names", bson.M{
 			"$in": []primitive.Regex{
 				{
-					Pattern: nameParam,
+					Pattern: *query.Name,
 					Options: "i",
 				},
 			},
-		}, nameExist),
+		}))
 	}
 
-	limit := lengthParam
-	if !lengthExist {
-		limit = 40
+	limit := 40
+	if query.Length != nil {
+		limit = *query.Length
 	}
 	points, err := s.Store.GetPoints(pointsFilter, limit)
 	if err != nil {
@@ -162,13 +167,15 @@ func (s *API) PointsHandler(c *fiber.Ctx) error {
 }
 
 func (s *API) PointIdHandler(c *fiber.Ctx) error {
-	id, idExist := c.Queries()["id"]
-	if !idExist {
-		log.Println("Request Point by id without floor or institute")
+	defer s.Logger.WriteLog(c.IP(), "PointIdHandler", c.Queries())
+
+	var query PointIdQuery
+	if err := c.QueryParser(&query); err != nil {
+		log.Println(err)
 		return c.Status(fiber.StatusBadRequest).SendString("Request must contain id query parameters")
 	}
 
-	point, err := s.Store.GetPoint(id)
+	point, err := s.Store.GetPoint(query.Id)
 	if err != nil {
 		log.Println(err)
 		return c.Status(fiber.StatusInternalServerError).SendString("Something went wrong in GetPoint")
@@ -177,15 +184,16 @@ func (s *API) PointIdHandler(c *fiber.Ctx) error {
 }
 
 func (s *API) PathHandler(c *fiber.Ctx) error {
-	from, fromExist := c.Queries()["from"]
-	to, toExist := c.Queries()["to"]
-	if !fromExist || !toExist {
-		log.Println("Request Path without from or to")
+	defer s.Logger.WriteLog(c.IP(), "PathHandler", c.Queries())
+
+	var query PathQuery
+	if err := c.QueryParser(&query); err != nil {
+		log.Println(err)
 		return c.Status(fiber.StatusBadRequest).SendString("Request must contain from and to query parameters")
 	}
 
-	start, startErr := s.Store.GetPoint(from)
-	end, endErr := s.Store.GetPoint(to)
+	start, startErr := s.Store.GetPoint(query.From)
+	end, endErr := s.Store.GetPoint(query.To)
 	if startErr != nil {
 		log.Println(startErr)
 		return c.Status(fiber.StatusInternalServerError).SendString(startErr.Error())
@@ -211,6 +219,8 @@ func (s *API) PathHandler(c *fiber.Ctx) error {
 }
 
 func (s *API) ObjectHandler(c *fiber.Ctx) error {
+	defer s.Logger.WriteLog(c.IP(), "ObjectHandler", c.AllParams())
+
 	iconName := c.Params("icon")
 	if !strings.HasSuffix(iconName, ".svg") {
 		log.Println("Request Object with unsupported type")
@@ -228,18 +238,17 @@ func (s *API) ObjectHandler(c *fiber.Ctx) error {
 }
 
 func (s *API) SearchHandler(c *fiber.Ctx) error {
-	name, nameExist := c.Queries()["name"]
-	_, lengthExist := c.Queries()["length"]
+	defer s.Logger.WriteLog(c.IP(), "SearchHandler", c.Queries())
 
-	length := 40
-
-	if !nameExist {
-		log.Println("Request Search without name")
+	var query SearchQuery
+	if err := c.QueryParser(&query); err != nil {
+		log.Println(err)
 		return c.Status(fiber.StatusBadRequest).SendString("Request must contain name query parameters")
 	}
+	length := 40
 
-	if lengthExist {
-		rawLength := c.QueryInt("length")
+	if query.Length != nil {
+		rawLength := *query.Length
 		if rawLength > 40 {
 			rawLength = 40
 		}
@@ -249,7 +258,7 @@ func (s *API) SearchHandler(c *fiber.Ctx) error {
 		length = rawLength
 	}
 
-	points, err := s.Store.GetBySearchEngine(name, length)
+	points, err := s.Store.GetBySearchEngine(query.Name, length)
 	if err != nil {
 		log.Println(err)
 		return c.Status(fiber.StatusInternalServerError).SendString("Something went wrong in Search")
