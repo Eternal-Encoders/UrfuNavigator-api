@@ -1,14 +1,11 @@
 package utils
 
-import (
-	"urfunavigator/index/models"
-
-	"go.mongodb.org/mongo-driver/bson"
-)
-
-func AppendFilter(root bson.M, filter models.PointsFilters) bson.M {
-	if filter.IsExist {
-		root[filter.Field] = filter.Value
+func MapToArray[Q comparable, T any](args map[Q]T) []T {
+	arr := make([]T, len(args))
+	i := 0
+	for _, value := range args {
+		arr[i] = value
+		i++
 	}
-	return root
+	return arr
 }

@@ -4,7 +4,6 @@ import (
 	"context"
 	"log"
 	"urfunavigator/index/models"
-	"urfunavigator/index/utils"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -195,7 +194,7 @@ func (s *MongoDB) GetPoints(preFilters []models.PointsFilters, limit int) ([]mod
 	filter := bson.M{}
 
 	for _, singleFilter := range preFilters {
-		filter = utils.AppendFilter(filter, singleFilter)
+		filter[singleFilter.Field] = singleFilter.Value
 	}
 
 	curs, err := coll.Find(context.TODO(), filter)
@@ -236,8 +235,8 @@ func (s *MongoDB) GetPoint(id string) (models.GraphPoint, error) {
 
 func (s *MongoDB) GetEnters(institute string) ([]models.GraphPoint, error) {
 	pointsFilter := []models.PointsFilters{
-		models.GetPointsFilter("types", bson.M{"$in": []string{"exit"}}, true),
-		models.GetPointsFilter("institute", institute, true),
+		models.GetPointsFilter("types", bson.M{"$in": []string{"exit"}}),
+		models.GetPointsFilter("institute", institute),
 	}
 
 	return s.GetPoints(pointsFilter, 4)

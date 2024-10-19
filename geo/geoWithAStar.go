@@ -27,6 +27,7 @@ func (g *GeoWithAStar) FindPath(
 
 	startEnters, startErr := enters_fn(start.Institute)
 	endEnters, endErr := enters_fn(end.Institute)
+
 	if startErr != nil {
 		return nil, startErr
 	}

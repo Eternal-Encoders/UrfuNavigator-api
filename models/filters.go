@@ -1,15 +1,13 @@
 package models
 
 type PointsFilters struct {
-	Field   string
-	Value   any
-	IsExist bool
+	Field string
+	Value any
 }
 
-func GetPointsFilter(field string, value any, isExist bool) PointsFilters {
+func GetPointsFilter(field string, value any) PointsFilters {
 	return PointsFilters{
-		Field:   field,
-		Value:   value,
-		IsExist: isExist,
+		Field: field,
+		Value: value,
 	}
 }
