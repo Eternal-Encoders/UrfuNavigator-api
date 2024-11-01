@@ -108,9 +108,6 @@ func (c *Clickhouse) InitDb() error {
 	if err := c.conn.Exec(ctx, fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s", c.db)); err != nil {
 		return err
 	}
-	if err := c.conn.Exec(ctx, fmt.Sprintf("DROP TABLE IF EXISTS %s.api_calls", c.db)); err != nil {
-		return err
-	}
 	if err := c.conn.Exec(ctx, utils.CreateTable(fmt.Sprintf("%s.api_calls", c.db), apiCallsTypes, "Timestamp")); err != nil {
 		return err
 	}
