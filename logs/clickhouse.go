@@ -6,15 +6,26 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"strings"
 	"time"
 	"urfunavigator/index/utils"
 
 	"github.com/ClickHouse/clickhouse-go/v2"
+	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
 )
 
+type ClickHouseData struct {
+	Ip        net.IP
+	Request   string
+	Args      []map[string]string
+	Timestamp time.Time
+}
+
 type Clickhouse struct {
-	conn clickhouse.Conn
-	db   string
+	batchSize int
+	batchData driver.Batch
+	conn      clickhouse.Conn
+	db        string
 }
 
 func NewClickhouse(
@@ -22,6 +33,7 @@ func NewClickhouse(
 	db string,
 	user string,
 	password string,
+	batchSize int,
 ) *Clickhouse {
 	ctx := context.Background()
 	dialCount := 0
@@ -66,8 +78,9 @@ func NewClickhouse(
 	}
 
 	return &Clickhouse{
-		conn: conn,
-		db:   db,
+		conn:      conn,
+		db:        db,
+		batchSize: batchSize,
 	}
 }
 
@@ -86,34 +99,67 @@ func (c *Clickhouse) InitDb() error {
 		"SearchHandler",
 	}
 	apiCallsTypes := map[string]string{
-		"ip":        "IPv4",
-		"request":   utils.CreateEnum(requests),
-		"args":      "Map(String, String)",
-		"timestamp": "DateTime",
+		"Ip":        "IPv4",
+		"Request":   utils.CreateEnum(requests),
+		"Args":      "Array(Tuple(Name String, Value String))",
+		"Timestamp": "DateTime",
 	}
 
 	if err := c.conn.Exec(ctx, fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s", c.db)); err != nil {
 		return err
 	}
-	if err := c.conn.Exec(ctx, utils.CreateTable(fmt.Sprintf("%s.api_calls", c.db), apiCallsTypes, "timestamp")); err != nil {
+	if err := c.conn.Exec(ctx, fmt.Sprintf("DROP TABLE IF EXISTS %s.api_calls", c.db)); err != nil {
 		return err
 	}
+	if err := c.conn.Exec(ctx, utils.CreateTable(fmt.Sprintf("%s.api_calls", c.db), apiCallsTypes, "Timestamp")); err != nil {
+		return err
+	}
+
+	c.CreateBatchInsert()
 
 	return nil
 }
 
-func (c *Clickhouse) WriteLog(ip string, request string, args map[string]string) error {
+func (c *Clickhouse) CreateBatchInsert() {
 	ctx := context.Background()
-	if err := c.conn.AsyncInsert(
+	batch, err := c.conn.PrepareBatch(
 		ctx,
-		fmt.Sprintf("INSERT INTO %s.%s (ip, request, args, timestamp) VALUES (toIPv4(?), ?, ?, now())", c.db, "api_calls"),
-		true,
-		ip,
-		request,
-		args,
-	); err != nil {
-		log.Println(err)
-		return err
+		fmt.Sprintf("INSERT INTO %s.%s", c.db, "api_calls"),
+	)
+	if err != nil {
+		log.Fatal(err)
 	}
+	c.batchData = batch
+}
+
+func (c *Clickhouse) WriteLog(ip string, request string, args map[string]string) error {
+	tempArgs := []map[string]string{}
+	for k, v := range args {
+		tempArgs = append(tempArgs, map[string]string{
+			"Name":  strings.Clone(k),
+			"Value": strings.Clone(v),
+		})
+	}
+	data := ClickHouseData{
+		Ip:        net.ParseIP(ip),
+		Request:   strings.Clone(request),
+		Args:      tempArgs,
+		Timestamp: time.Now(),
+	}
+
+	if batchErr := c.batchData.AppendStruct(&data); batchErr != nil {
+		log.Println(batchErr)
+		return batchErr
+	}
+	if c.batchData.Rows() < c.batchSize {
+		return nil
+	}
+
+	if sendErr := c.batchData.Send(); sendErr != nil {
+		log.Println(sendErr)
+		return sendErr
+	}
+
+	c.CreateBatchInsert()
 	return nil
 }
