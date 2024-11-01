@@ -109,9 +109,23 @@ func main() {
 		clickhousePassword = string(data)
 	}
 
-	store := store.Connect(uri, collection)
-	clickhouse := logs.NewClickhouse(clickhouseUri, clickhouseDb, clickhouseUser, clickhousePassword)
-	objectStore := object.Connect(s3Endpoint, s3Access, s3Secret, bucketName)
+	store := store.Connect(
+		uri,
+		collection,
+	)
+	clickhouse := logs.NewClickhouse(
+		clickhouseUri,
+		clickhouseDb,
+		clickhouseUser,
+		clickhousePassword,
+		5000,
+	)
+	objectStore := object.Connect(
+		s3Endpoint,
+		s3Access,
+		s3Secret,
+		bucketName,
+	)
 	geoService := geo.ConnectGeoService()
 	api := api.NewAPI(
 		"/api",
