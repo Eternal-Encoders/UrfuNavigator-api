@@ -215,7 +215,9 @@ func (s *API) PathHandler(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).SendString(pathErr.Error())
 	}
 
-	return c.JSON(path)
+	return c.JSON(map[string]any{
+		"result": path,
+	})
 }
 
 func (s *API) ObjectHandler(c *fiber.Ctx) error {
