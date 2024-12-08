@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"net"
-	"strings"
 	"time"
 	"urfunavigator/index/utils"
 
@@ -130,33 +129,33 @@ func (c *Clickhouse) CreateBatchInsert() {
 }
 
 func (c *Clickhouse) WriteLog(ip string, request string, args map[string]string) error {
-	tempArgs := []map[string]string{}
-	for k, v := range args {
-		tempArgs = append(tempArgs, map[string]string{
-			"Name":  strings.Clone(k),
-			"Value": strings.Clone(v),
-		})
-	}
-	data := ClickHouseData{
-		Ip:        net.ParseIP(ip),
-		Request:   strings.Clone(request),
-		Args:      tempArgs,
-		Timestamp: time.Now(),
-	}
+	// tempArgs := []map[string]string{}
+	// for k, v := range args {
+	// 	tempArgs = append(tempArgs, map[string]string{
+	// 		"Name":  strings.Clone(k),
+	// 		"Value": strings.Clone(v),
+	// 	})
+	// }
+	// data := ClickHouseData{
+	// 	Ip:        net.ParseIP(ip),
+	// 	Request:   strings.Clone(request),
+	// 	Args:      tempArgs,
+	// 	Timestamp: time.Now(),
+	// }
 
-	if batchErr := c.batchData.AppendStruct(&data); batchErr != nil {
-		log.Println(batchErr)
-		return batchErr
-	}
-	if c.batchData.Rows() < c.batchSize {
-		return nil
-	}
+	// if batchErr := c.batchData.AppendStruct(&data); batchErr != nil {
+	// 	log.Println(batchErr)
+	// 	return batchErr
+	// }
+	// if c.batchData.Rows() < c.batchSize {
+	// 	return nil
+	// }
 
-	if sendErr := c.batchData.Send(); sendErr != nil {
-		log.Println(sendErr)
-		return sendErr
-	}
+	// if sendErr := c.batchData.Send(); sendErr != nil {
+	// 	log.Println(sendErr)
+	// 	return sendErr
+	// }
 
-	c.CreateBatchInsert()
+	// c.CreateBatchInsert()
 	return nil
 }
