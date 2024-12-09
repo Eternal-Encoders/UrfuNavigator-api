@@ -2,7 +2,6 @@ package api
 
 import (
 	"urfunavigator/index/geo"
-	"urfunavigator/index/logs"
 	"urfunavigator/index/object"
 	"urfunavigator/index/store"
 
@@ -17,7 +16,6 @@ type API struct {
 	ObjectStore    object.ObjectStore
 	GEoService     geo.Geo
 	AllowedOrigins string
-	Logger         logs.Log
 }
 
 func NewAPI(
@@ -27,7 +25,6 @@ func NewAPI(
 	objectStore object.ObjectStore,
 	geo geo.Geo,
 	allowedOrigins string,
-	logger logs.Log,
 ) *API {
 	return &API{
 		DefaultPath:    defaultPath,
@@ -36,7 +33,6 @@ func NewAPI(
 		ObjectStore:    objectStore,
 		GEoService:     geo,
 		AllowedOrigins: allowedOrigins,
-		Logger:         logger,
 	}
 }
 

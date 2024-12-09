@@ -5,7 +5,6 @@ import (
 	"os"
 	"urfunavigator/index/api"
 	"urfunavigator/index/geo"
-	"urfunavigator/index/logs"
 	"urfunavigator/index/object"
 	"urfunavigator/index/store"
 
@@ -27,10 +26,6 @@ func main() {
 	s3Access, s3AccessExist := os.LookupEnv("BUCKET_ACCESS_KEY")
 	s3Secret, s3SecretExist := os.LookupEnv("BUCKET_SECRET_KEY")
 	bucketName, bucketNameExist := os.LookupEnv("BUCKET_NAME")
-	clickhouseUri, clickhouseUriExist := os.LookupEnv("CLICKHOUSE_URI")
-	clickhouseDb, clickhouseDbExist := os.LookupEnv("CLICKHOUSE_DATABASE")
-	clickhouseUser, clickhouseUserExist := os.LookupEnv("CLICKHOUSE_USER")
-	clickhousePassword, clickhousePasswordExist := os.LookupEnv("CLICKHOUSE_PASSWORD")
 
 	if !exist {
 		file, fileExist := os.LookupEnv("DATABASE_URI_FILE")
@@ -86,39 +81,10 @@ func main() {
 	if !bucketNameExist {
 		log.Fatal("No s3 bucket specified")
 	}
-	if !clickhouseUriExist {
-		log.Fatal("No clickhouse uri specified")
-	}
-	if !clickhouseDbExist {
-		log.Fatal("No clickhouse database specified")
-	}
-	if !clickhouseUserExist {
-		log.Fatal("No clickhouse user specified")
-	}
-	if !clickhousePasswordExist {
-		file, fileExist := os.LookupEnv("CLICKHOUSE_PASSWORD_FILE")
-
-		if !fileExist {
-			log.Fatal("No clickhouse password specified")
-		}
-
-		data, err := os.ReadFile(file)
-		if err != nil {
-			log.Fatal(err)
-		}
-		clickhousePassword = string(data)
-	}
 
 	store := store.Connect(
 		uri,
 		collection,
-	)
-	clickhouse := logs.NewClickhouse(
-		clickhouseUri,
-		clickhouseDb,
-		clickhouseUser,
-		clickhousePassword,
-		5000,
 	)
 	objectStore := object.Connect(
 		s3Endpoint,
@@ -134,12 +100,7 @@ func main() {
 		objectStore,
 		geoService,
 		cors,
-		clickhouse,
 	)
-
-	if err := clickhouse.InitDb(); err != nil {
-		log.Fatal(err)
-	}
 
 	defer store.Disconnect()
 
