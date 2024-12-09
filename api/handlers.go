@@ -11,13 +11,10 @@ import (
 )
 
 func (s *API) MainHandler(c *fiber.Ctx) error {
-	defer s.Logger.WriteLog(c.IP(), "MainHandler", c.AllParams())
 	return c.SendString("OK")
 }
 
 func (s *API) FloorHandler(c *fiber.Ctx) error {
-	defer s.Logger.WriteLog(c.IP(), "FloorHandler", c.Queries())
-
 	var query FloorQuery
 	if err := c.QueryParser(&query); err != nil {
 		log.Println(err)
@@ -43,8 +40,6 @@ func (s *API) FloorHandler(c *fiber.Ctx) error {
 }
 
 func (s *API) InstituteHandler(c *fiber.Ctx) error {
-	defer s.Logger.WriteLog(c.IP(), "InstituteHandler", c.Queries())
-
 	var query InstituteQuery
 	if err := c.QueryParser(&query); err != nil {
 		log.Println(err)
@@ -83,8 +78,6 @@ func (s *API) InstituteHandler(c *fiber.Ctx) error {
 }
 
 func (s *API) InstitutesHandler(c *fiber.Ctx) error {
-	defer s.Logger.WriteLog(c.IP(), "InstitutesHandler", c.AllParams())
-
 	institutesData, err := s.Store.GetInstitutes()
 	if err != nil {
 		log.Println(err)
@@ -124,8 +117,6 @@ func (s *API) InstitutesHandler(c *fiber.Ctx) error {
 }
 
 func (s *API) PointsHandler(c *fiber.Ctx) error {
-	defer s.Logger.WriteLog(c.IP(), "PointsHandler", c.Queries())
-
 	var query PointsQuery
 	if err := c.QueryParser(&query); err != nil {
 		log.Println(err)
@@ -167,8 +158,6 @@ func (s *API) PointsHandler(c *fiber.Ctx) error {
 }
 
 func (s *API) PointIdHandler(c *fiber.Ctx) error {
-	defer s.Logger.WriteLog(c.IP(), "PointIdHandler", c.Queries())
-
 	var query PointIdQuery
 	if err := c.QueryParser(&query); err != nil {
 		log.Println(err)
@@ -184,8 +173,6 @@ func (s *API) PointIdHandler(c *fiber.Ctx) error {
 }
 
 func (s *API) PathHandler(c *fiber.Ctx) error {
-	defer s.Logger.WriteLog(c.IP(), "PathHandler", c.Queries())
-
 	var query PathQuery
 	if err := c.QueryParser(&query); err != nil {
 		log.Println(err)
@@ -221,8 +208,6 @@ func (s *API) PathHandler(c *fiber.Ctx) error {
 }
 
 func (s *API) ObjectHandler(c *fiber.Ctx) error {
-	defer s.Logger.WriteLog(c.IP(), "ObjectHandler", c.AllParams())
-
 	iconName := c.Params("icon")
 	if !strings.HasSuffix(iconName, ".svg") {
 		log.Println("Request Object with unsupported type")
@@ -240,8 +225,6 @@ func (s *API) ObjectHandler(c *fiber.Ctx) error {
 }
 
 func (s *API) SearchHandler(c *fiber.Ctx) error {
-	defer s.Logger.WriteLog(c.IP(), "SearchHandler", c.Queries())
-
 	var query SearchQuery
 	if err := c.QueryParser(&query); err != nil {
 		log.Println(err)
@@ -266,5 +249,8 @@ func (s *API) SearchHandler(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).SendString("Something went wrong in Search")
 	}
 
+	if len(points) <= 0 {
+		return c.JSON([]models.GraphPoint{})
+	}
 	return c.JSON(points)
 }
