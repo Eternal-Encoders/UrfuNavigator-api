@@ -1,16 +1,10 @@
 package logs
 
 import (
-	"context"
-	"crypto/tls"
-	"fmt"
-	"log"
 	"net"
 	"time"
-	"urfunavigator/index/utils"
 
 	"github.com/ClickHouse/clickhouse-go/v2"
-	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
 )
 
 type ClickHouseData struct {
@@ -22,9 +16,9 @@ type ClickHouseData struct {
 
 type Clickhouse struct {
 	batchSize int
-	batchData driver.Batch
-	conn      clickhouse.Conn
-	db        string
+	// batchData driver.Batch
+	conn clickhouse.Conn
+	db   string
 }
 
 func NewClickhouse(
@@ -34,98 +28,103 @@ func NewClickhouse(
 	password string,
 	batchSize int,
 ) *Clickhouse {
-	ctx := context.Background()
-	dialCount := 0
+	// ctx := context.Background()
+	// dialCount := 0
 
-	conn, err := clickhouse.Open(&clickhouse.Options{
-		Addr: []string{uri},
-		Auth: clickhouse.Auth{
-			Username: user,
-			Password: password,
-		},
-		DialContext: func(ctx context.Context, addr string) (net.Conn, error) {
-			dialCount++
-			var d net.Dialer
-			return d.DialContext(ctx, "tcp", addr)
-		},
-		Settings: clickhouse.Settings{
-			"max_execution_time": 60,
-		},
-		Compression: &clickhouse.Compression{
-			Method: clickhouse.CompressionLZ4,
-		},
-		DialTimeout:      time.Duration(10) * time.Second,
-		MaxOpenConns:     5,
-		MaxIdleConns:     5,
-		ConnMaxLifetime:  time.Duration(10) * time.Minute,
-		ConnOpenStrategy: clickhouse.ConnOpenInOrder,
-		BlockBufferSize:  10,
-		TLS: &tls.Config{
-			InsecureSkipVerify: true,
-		},
-	})
+	// conn, err := clickhouse.Open(&clickhouse.Options{
+	// 	Addr: []string{uri},
+	// 	Auth: clickhouse.Auth{
+	// 		Username: user,
+	// 		Password: password,
+	// 	},
+	// 	DialContext: func(ctx context.Context, addr string) (net.Conn, error) {
+	// 		dialCount++
+	// 		var d net.Dialer
+	// 		return d.DialContext(ctx, "tcp", addr)
+	// 	},
+	// 	Settings: clickhouse.Settings{
+	// 		"max_execution_time": 60,
+	// 	},
+	// 	Compression: &clickhouse.Compression{
+	// 		Method: clickhouse.CompressionLZ4,
+	// 	},
+	// 	DialTimeout:      time.Duration(10) * time.Second,
+	// 	MaxOpenConns:     5,
+	// 	MaxIdleConns:     5,
+	// 	ConnMaxLifetime:  time.Duration(10) * time.Minute,
+	// 	ConnOpenStrategy: clickhouse.ConnOpenInOrder,
+	// 	BlockBufferSize:  10,
+	// 	TLS: &tls.Config{
+	// 		InsecureSkipVerify: true,
+	// 	},
+	// })
 
-	if err != nil {
-		log.Fatal(err)
-	}
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 
-	if err := conn.Ping(ctx); err != nil {
-		if exception, ok := err.(*clickhouse.Exception); ok {
-			log.Printf("Exception [%d] %s \n%s\n", exception.Code, exception.Message, exception.StackTrace)
-		}
-		log.Fatal(err)
-	}
+	// if err := conn.Ping(ctx); err != nil {
+	// 	if exception, ok := err.(*clickhouse.Exception); ok {
+	// 		log.Printf("Exception [%d] %s \n%s\n", exception.Code, exception.Message, exception.StackTrace)
+	// 	}
+	// 	log.Fatal(err)
+	// }
 
+	// return &Clickhouse{
+	// 	conn:      conn,
+	// 	db:        db,
+	// 	batchSize: batchSize,
+	// }
 	return &Clickhouse{
-		conn:      conn,
+		conn:      nil,
 		db:        db,
 		batchSize: batchSize,
 	}
 }
 
 func (c *Clickhouse) InitDb() error {
-	ctx := context.Background()
+	// ctx := context.Background()
 
-	requests := []string{
-		"MainHandler",
-		"FloorHandler",
-		"InstituteHandler",
-		"InstitutesHandler",
-		"PointsHandler",
-		"PointIdHandler",
-		"PathHandler",
-		"ObjectHandler",
-		"SearchHandler",
-	}
-	apiCallsTypes := map[string]string{
-		"Ip":        "IPv4",
-		"Request":   utils.CreateEnum(requests),
-		"Args":      "Array(Tuple(Name String, Value String))",
-		"Timestamp": "DateTime",
-	}
+	// requests := []string{
+	// 	"MainHandler",
+	// 	"FloorHandler",
+	// 	"InstituteHandler",
+	// 	"InstitutesHandler",
+	// 	"PointsHandler",
+	// 	"PointIdHandler",
+	// 	"PathHandler",
+	// 	"ObjectHandler",
+	// 	"SearchHandler",
+	// }
+	// apiCallsTypes := map[string]string{
+	// 	"Ip":        "IPv4",
+	// 	"Request":   utils.CreateEnum(requests),
+	// 	"Args":      "Array(Tuple(Name String, Value String))",
+	// 	"Timestamp": "DateTime",
+	// }
 
-	if err := c.conn.Exec(ctx, fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s", c.db)); err != nil {
-		return err
-	}
-	if err := c.conn.Exec(ctx, utils.CreateTable(fmt.Sprintf("%s.api_calls", c.db), apiCallsTypes, "Timestamp")); err != nil {
-		return err
-	}
+	// if err := c.conn.Exec(ctx, fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s", c.db)); err != nil {
+	// 	return err
+	// }
+	// if err := c.conn.Exec(ctx, utils.CreateTable(fmt.Sprintf("%s.api_calls", c.db), apiCallsTypes, "Timestamp")); err != nil {
+	// 	return err
+	// }
 
-	c.CreateBatchInsert()
+	// c.CreateBatchInsert()
 
 	return nil
 }
 
 func (c *Clickhouse) CreateBatchInsert() {
-	ctx := context.Background()
-	batch, err := c.conn.PrepareBatch(
-		ctx,
-		fmt.Sprintf("INSERT INTO %s.%s", c.db, "api_calls"),
-	)
-	if err != nil {
-		log.Fatal(err)
-	}
-	c.batchData = batch
+	// ctx := context.Background()
+	// batch, err := c.conn.PrepareBatch(
+	// 	ctx,
+	// 	fmt.Sprintf("INSERT INTO %s.%s", c.db, "api_calls"),
+	// )
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	// c.batchData = batch
 }
 
 func (c *Clickhouse) WriteLog(ip string, request string, args map[string]string) error {
