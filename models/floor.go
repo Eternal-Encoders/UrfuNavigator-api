@@ -8,4 +8,5 @@ type Floor struct {
 	Audiences []Auditorium `json:"audiences"`
 	Service   []Service    `json:"service"`
 	Graph     []string     `json:"graph"`
+	Gps       *FloorGps    `json:"gps"`
 }

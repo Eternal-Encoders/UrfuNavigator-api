@@ -34,6 +34,7 @@ func (s *API) FloorHandler(c *fiber.Ctx) error {
 		Height:    floorData.Height,
 		Audiences: floorData.Audiences,
 		Service:   floorData.Service,
+		Gps:       floorData.Gps,
 	}
 
 	return c.JSON(response)
@@ -72,6 +73,7 @@ func (s *API) InstituteHandler(c *fiber.Ctx) error {
 		Latitude:        instituteData.Latitude,
 		Longitude:       instituteData.Longitude,
 		Icon:            iconData[0],
+		Gps:             instituteData.Gps,
 	}
 
 	return c.JSON(response)

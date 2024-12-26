@@ -7,15 +7,17 @@ type FloorResponse struct {
 	Height    float32      `json:"height"`
 	Audiences []Auditorium `json:"audiences"`
 	Service   []Service    `json:"service"`
+	Gps       *FloorGps    `json:"gps"`
 }
 
 type InstituteResponse struct {
-	Name            string        `json:"name"`
-	DisplayableName string        `json:"displayableName"`
-	MinFloor        int           `json:"minFloor"`
-	MaxFloor        int           `json:"maxFloor"`
-	Url             string        `json:"url"`
-	Latitude        float64       `json:"latitude"`
-	Longitude       float64       `json:"longitude"`
-	Icon            InstituteIcon `json:"icon"`
+	Name            string          `json:"name"`
+	DisplayableName string          `json:"displayableName"`
+	MinFloor        int             `json:"minFloor"`
+	MaxFloor        int             `json:"maxFloor"`
+	Url             string          `json:"url"`
+	Latitude        float64         `json:"latitude"`
+	Longitude       float64         `json:"longitude"`
+	Icon            InstituteIcon   `json:"icon"`
+	Gps             *[]InstituteGps `json:"gps"`
 }
