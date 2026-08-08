@@ -1,11 +1,21 @@
 # UrfuNavigator-api
 
-List of requiered env's
-* DATABASE_URI - URI for mongodb connection
-* DATABASE_COLLECTION - MongoDB collection where is stored info
-* PORT - Local port, what's app is listining
-* CORS - List of allowed origins
-* BUCKET_ENDPOINT - Hostname for s3 storage origin
-* BUCKET_ACCESS_KEY - Access key from s3 storage
-* BUCKET_SECRET_KEY - Secret key from s3 storage
-* BUCKET_NAME - Name of the bucket, where data is stored
+List of requiered env's:
+* MODE - Dev или Prod
+* PORT - Порт для запуска
+* CORS - Исключения из CORS'ов
+* DEFAULT_PATH - Стандартный путь API
+* DATABASE_URI - URI для подключения к MongoDB
+* DATABASE_COLLECTION - Название коллекции
+* BUCKET_ENDPOINT - Эндпоинт с API Minio
+* BUCKET_ACCESS_KEY - Id ключа Minio
+* BUCKET_SECRET_KEY - Secret ключа Minio
+* BUCKET_NAME - Название бакета Minio
+
+# Run
+
+Запуск Dev:
+
+```bash
+air -c .air.windows.conf
+```
