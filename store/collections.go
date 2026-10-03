@@ -3,7 +3,7 @@ package store
 const (
 	CollUsers                = "users"
 	CollBuildings            = "buildings"
-	CollBuildingColorSchemes = "building_color_schemes"
+	CollBuildingColorSchemes = "buildingColorSchemes"
 	CollFloors               = "floors"
 	CollGraphPoints          = "graph_points"
 	CollRooms                = "rooms"

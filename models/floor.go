@@ -3,25 +3,25 @@ package models
 import "go.mongodb.org/mongo-driver/v2/bson"
 
 type LinearGps struct {
-	B1 float64 `bson:"b1"`
-	B2 float64 `bson:"b2"`
-	A  float64 `bson:"a"`
+	B1 float64 `bson:"b1" json:"b1"`
+	B2 float64 `bson:"b2" json:"b2"`
+	A  float64 `bson:"a" json:"a"`
 }
 
 type PointGps[T any] struct {
-	X T `bson:"x"`
-	Y T `bson:"y"`
+	X T `bson:"x" json:"x"`
+	Y T `bson:"y" json:"y"`
 }
 
 type StabilForceGps struct {
-	Point PointGps[float64] `bson:"point"`
-	Force PointGps[float64] `bson:"force"`
+	Point PointGps[float64] `bson:"point" json:"point"`
+	Force PointGps[float64] `bson:"force" json:"force"`
 }
 
 type FloorGps struct {
-	Altitude float64             `bson:"altitude"`
-	Linear   PointGps[LinearGps] `bson:"linear"`
-	Forces   []StabilForceGps    `bson:"forces"`
+	Altitude float64             `bson:"altitude" json:"altitude"`
+	Linear   PointGps[LinearGps] `bson:"linear" json:"linear"`
+	Forces   []StabilForceGps    `bson:"forces" json:"forces"`
 }
 
 type Floor struct {

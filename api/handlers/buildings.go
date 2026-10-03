@@ -46,8 +46,13 @@ func loadBuildingIcons(objectStore models.ObjectStore, iconNames []string) (map[
 	return results, nil
 }
 
-func toBuildingResponse(building models.Building, icon models.BuildingIconResponse, floors map[bson.ObjectID]*models.Floor) models.BuildingResponse {
-	return models.ToBuildingResponse(building, icon, floors)
+func toBuildingResponse(
+	building models.Building,
+	icon models.BuildingIconResponse,
+	floors map[bson.ObjectID]*models.Floor,
+	colorSchemes map[bson.ObjectID]*models.BuildingColorSchema,
+) models.BuildingResponse {
+	return models.ToBuildingResponse(building, icon, floors, colorSchemes)
 }
 
 // BuildingHandler returns a single building with resolved icon.
@@ -105,12 +110,18 @@ func BuildingHandler(services models.DataService) fiber.Handler {
 			return c.Status(fiber.StatusInternalServerError).SendString("Something went wrong in GetFloors")
 		}
 
+		colorSchemes, err := services.Store.GetBuildingColorSchemes(building.ColorSchemes)
+		if err != nil {
+			logHandlerError(c, "BuildingHandler", err, "building_id", buildingID.Hex(), "stage", "get_color_schemes")
+			return c.Status(fiber.StatusInternalServerError).SendString("Something went wrong in GetBuildingColorSchemes")
+		}
+
 		logHandlerDebug(c, "BuildingHandler", "building loaded",
 			"building_id", buildingID.Hex(),
 			"icon", building.Icon,
 		)
 
-		return c.JSON(toBuildingResponse(*building, icon, *floors))
+		return c.JSON(toBuildingResponse(*building, icon, *floors, *colorSchemes))
 	}
 }
 
@@ -142,14 +153,22 @@ func BuildingsHandler(services models.DataService) fiber.Handler {
 		}
 
 		floorIDs := make([]bson.ObjectID, 0)
+		colorSchemeIDs := make([]bson.ObjectID, 0)
 		for _, building := range buildings {
 			floorIDs = append(floorIDs, building.Floors...)
+			colorSchemeIDs = append(colorSchemeIDs, building.ColorSchemes...)
 		}
 
 		floors, err := services.Store.GetFloors(floorIDs)
 		if err != nil {
 			logHandlerError(c, "BuildingsHandler", err, "stage", "get_floors")
 			return c.Status(fiber.StatusInternalServerError).SendString("Something went wrong in GetFloors")
+		}
+
+		colorSchemes, err := services.Store.GetBuildingColorSchemes(colorSchemeIDs)
+		if err != nil {
+			logHandlerError(c, "BuildingsHandler", err, "stage", "get_color_schemes")
+			return c.Status(fiber.StatusInternalServerError).SendString("Something went wrong in GetBuildingColorSchemes")
 		}
 
 		response := make([]models.BuildingResponse, 0, len(buildings))
@@ -163,7 +182,7 @@ func BuildingsHandler(services models.DataService) fiber.Handler {
 				return c.Status(fiber.StatusNotFound).SendString("For some buildings icons were not found")
 			}
 
-			response = append(response, toBuildingResponse(building, icon, *floors))
+			response = append(response, toBuildingResponse(building, icon, *floors, *colorSchemes))
 		}
 
 		logHandlerDebug(c, "BuildingsHandler", "buildings listed",

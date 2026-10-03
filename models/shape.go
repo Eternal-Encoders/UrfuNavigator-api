@@ -131,7 +131,7 @@ func (a AnyShape) MarshalJSON() ([]byte, error) {
 }
 
 type BaseShape struct {
-	Type ShapeType `bson:"type"`
+	Type ShapeType `bson:"type" json:"type"`
 }
 
 func (b BaseShape) GetType() ShapeType {
@@ -140,8 +140,8 @@ func (b BaseShape) GetType() ShapeType {
 
 type PointShape struct {
 	BaseShape `bson:",inline"`
-	X         float64 `bson:"x"`
-	Y         float64 `bson:"y"`
+	X         float64 `bson:"x" json:"x"`
+	Y         float64 `bson:"y" json:"y"`
 }
 
 func (*PointShape) GetType() ShapeType {
@@ -150,10 +150,10 @@ func (*PointShape) GetType() ShapeType {
 
 type RectangleShape struct {
 	BaseShape `bson:",inline"`
-	X         float64 `bson:"x"`
-	Y         float64 `bson:"y"`
-	Width     float64 `bson:"width"`
-	Height    float64 `bson:"height"`
+	X         float64 `bson:"x" json:"x"`
+	Y         float64 `bson:"y" json:"y"`
+	Width     float64 `bson:"width" json:"width"`
+	Height    float64 `bson:"height" json:"height"`
 }
 
 func (*RectangleShape) GetType() ShapeType {
@@ -162,9 +162,9 @@ func (*RectangleShape) GetType() ShapeType {
 
 type PolyShape struct {
 	BaseShape `bson:",inline"`
-	X         float64      `bson:"x"`
-	Y         float64      `bson:"y"`
-	Points    []PointShape `bson:"points"`
+	X         float64      `bson:"x" json:"x"`
+	Y         float64      `bson:"y" json:"y"`
+	Points    []PointShape `bson:"points" json:"points"`
 }
 
 func (*PolyShape) GetType() ShapeType {
@@ -173,13 +173,13 @@ func (*PolyShape) GetType() ShapeType {
 
 type ContainerShape struct {
 	BaseShape `bson:",inline"`
-	X         float64         `bson:"x"`
-	Y         float64         `bson:"y"`
-	Width     float64         `bson:"width"`
-	Height    float64         `bson:"height"`
-	AlignX    ShapeHAlignment `bson:"alignX"`
-	AlignY    ShapeVAlignment `bson:"alignY"`
-	Children  []AnyShape      `bson:"children"`
+	X         float64         `bson:"x"  json:"x"`
+	Y         float64         `bson:"y"  json:"y"`
+	Width     float64         `bson:"width"  json:"width"`
+	Height    float64         `bson:"height"  json:"height"`
+	AlignX    ShapeHAlignment `bson:"alignX"  json:"alignX"`
+	AlignY    ShapeVAlignment `bson:"alignY"  json:"alignY"`
+	Children  []AnyShape      `bson:"children"  json:"children"`
 }
 
 func (*ContainerShape) GetType() ShapeType {
@@ -188,11 +188,11 @@ func (*ContainerShape) GetType() ShapeType {
 
 type TextShape struct {
 	BaseShape `bson:",inline"`
-	X         float64         `bson:"x"`
-	Y         float64         `bson:"y"`
-	AlignX    ShapeHAlignment `bson:"alignX"`
-	AlignY    ShapeVAlignment `bson:"alignY"`
-	Text      string          `bson:"text"`
+	X         float64         `bson:"x" json:"x"`
+	Y         float64         `bson:"y" json:"y"`
+	AlignX    ShapeHAlignment `bson:"alignX" json:"alignX"`
+	AlignY    ShapeVAlignment `bson:"alignY" json:"alignY"`
+	Text      string          `bson:"text" json:"text"`
 }
 
 func (*TextShape) GetType() ShapeType {
@@ -201,11 +201,11 @@ func (*TextShape) GetType() ShapeType {
 
 type IconShape struct {
 	BaseShape `bson:",inline"`
-	X         float64 `bson:"x"`
-	Y         float64 `bson:"y"`
-	Width     float64 `bson:"width"`
-	Height    float64 `bson:"height"`
-	Icon      string  `bson:"icon"`
+	X         float64 `bson:"x" json:"x"`
+	Y         float64 `bson:"y" json:"y"`
+	Width     float64 `bson:"width" json:"width"`
+	Height    float64 `bson:"height" json:"height"`
+	Icon      string  `bson:"icon" json:"icon"`
 }
 
 func (*IconShape) GetType() ShapeType {
@@ -214,9 +214,9 @@ func (*IconShape) GetType() ShapeType {
 
 type DoorShape struct {
 	BaseShape `bson:",inline"`
-	wallId    int32   `bson:"wallId"`
-	length    float64 `bson:"length"`
-	offset    float64 `bson:"offset"`
+	WallId    int32   `bson:"wallId" json:"wallId"`
+	Length    float64 `bson:"length" json:"length"`
+	Offset    float64 `bson:"offset" json:"offset"`
 }
 
 func (*DoorShape) GetType() ShapeType {

@@ -33,16 +33,35 @@ type BuildingIconResponse struct {
 	ExpiresAt time.Time `json:"expiresAt"`
 }
 
+type BuildingColorThemeResponse struct {
+	BuildingBorder     *string                   `json:"buildingBorder,omitempty"`
+	BuildingFill       *string                   `json:"buildingFill,omitempty"`
+	BuildingBackground *string                   `json:"buildingBackground,omitempty"`
+	RoomBorder         *string                   `json:"roomBorder,omitempty"`
+	RoomFill           *string                   `json:"roomFill,omitempty"`
+	RoomText           *string                   `json:"roomText,omitempty"`
+	RoomTypeBorder     map[GraphPointType]string `json:"roomTypeBorder,omitempty"`
+	RoomTypeFill       map[GraphPointType]string `json:"roomTypeFill,omitempty"`
+	RoomTypeText       map[GraphPointType]string `json:"roomTypeText,omitempty"`
+}
+
+type BuildingColorSchemaResponse struct {
+	EntityResponse
+	AccentColor     string                     `json:"accentColor"`
+	WhiteColorTheme BuildingColorThemeResponse `json:"whiteColorTheme"`
+	DarkColorTheme  BuildingColorThemeResponse `json:"darkColorTheme"`
+}
+
 // BuildingResponse describes a campus building and its linked resources.
 type BuildingResponse struct {
 	EntityResponse
-	Floors       []EntityResponse      `json:"floors"`
-	Url          string                `json:"url"`
-	Latitude     float64               `json:"latitude"`
-	Longitude    float64               `json:"longitude"`
-	Icon         BuildingIconResponse  `json:"icon"`
-	ColorSchemes []bson.ObjectID       `json:"colorSchemes"`
-	Gps          []BuildingGpsResponse `json:"gps"`
+	Floors       []EntityResponse              `json:"floors"`
+	Url          string                        `json:"url"`
+	Latitude     float64                       `json:"latitude"`
+	Longitude    float64                       `json:"longitude"`
+	Icon         BuildingIconResponse          `json:"icon"`
+	ColorSchemes []BuildingColorSchemaResponse `json:"colorSchemes"`
+	Gps          []BuildingGpsResponse         `json:"gps"`
 }
 
 type LinearGpsResponse struct {
@@ -190,7 +209,45 @@ func ToFloorEntityResponses(floorIDs []bson.ObjectID, floors map[bson.ObjectID]*
 	return result
 }
 
-func ToBuildingResponse(building Building, icon BuildingIconResponse, floors map[bson.ObjectID]*Floor) BuildingResponse {
+func ToBuildingColorThemeResponse(theme BuildingColorTheme) BuildingColorThemeResponse {
+	return BuildingColorThemeResponse{
+		BuildingBorder:     theme.BuildingBorder,
+		BuildingFill:       theme.BuildingFill,
+		BuildingBackground: theme.BuildingBackground,
+		RoomBorder:         theme.RoomBorder,
+		RoomFill:           theme.RoomFill,
+		RoomText:           theme.RoomText,
+		RoomTypeBorder:     theme.RoomTypeBorder,
+		RoomTypeFill:       theme.RoomTypeFill,
+		RoomTypeText:       theme.RoomTypeText,
+	}
+}
+
+func ToBuildingColorSchemaResponse(schema BuildingColorSchema) BuildingColorSchemaResponse {
+	return BuildingColorSchemaResponse{
+		EntityResponse:  ToEntityResponse(schema.BaseDBSchema),
+		AccentColor:     schema.AccentColor,
+		WhiteColorTheme: ToBuildingColorThemeResponse(schema.WhiteColorTheme),
+		DarkColorTheme:  ToBuildingColorThemeResponse(schema.DarkColorTheme),
+	}
+}
+
+func ToBuildingColorSchemaResponses(schemaIDs []bson.ObjectID, schemas map[bson.ObjectID]*BuildingColorSchema) []BuildingColorSchemaResponse {
+	result := make([]BuildingColorSchemaResponse, 0, len(schemaIDs))
+	for _, id := range schemaIDs {
+		if schema, ok := schemas[id]; ok && schema != nil {
+			result = append(result, ToBuildingColorSchemaResponse(*schema))
+		}
+	}
+	return result
+}
+
+func ToBuildingResponse(
+	building Building,
+	icon BuildingIconResponse,
+	floors map[bson.ObjectID]*Floor,
+	colorSchemes map[bson.ObjectID]*BuildingColorSchema,
+) BuildingResponse {
 	gps := make([]BuildingGpsResponse, len(building.Gps))
 	for i, item := range building.Gps {
 		gps[i] = ToBuildingGpsResponse(item)
@@ -203,7 +260,7 @@ func ToBuildingResponse(building Building, icon BuildingIconResponse, floors map
 		Latitude:       building.Latitude,
 		Longitude:      building.Longitude,
 		Icon:           icon,
-		ColorSchemes:   building.ColorSchemes,
+		ColorSchemes:   ToBuildingColorSchemaResponses(building.ColorSchemes, colorSchemes),
 		Gps:            gps,
 	}
 }

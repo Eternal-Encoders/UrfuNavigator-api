@@ -16,6 +16,7 @@ import (
 // @Failure 400 {string} string
 // @Failure 404 {string} string
 // @Router /api/icons/{icon} [get]
+// @Router /admin_api/icons/{icon} [get]
 func ObjectHandler(services models.DataService) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		iconName := c.Params("icon")

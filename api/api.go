@@ -74,6 +74,7 @@ func (s *API) Run(dataService models.DataService, jwtCfg auth.Config) error {
 	admin := app.Group("/admin_api", auth.RequireJWT(jwtCfg), auth.RequireAdminRole())
 
 	// Icons
+	admin.Get("/icons/:icon", handlers.ObjectHandler(dataService))
 	admin.Delete("/delete_icon", handlers.DeleteObjectHandler(dataService))
 	admin.Post("/upload_icon", handlers.UploadObjectHandler(dataService))
 
