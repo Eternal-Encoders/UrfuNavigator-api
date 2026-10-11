@@ -1,9 +1,11 @@
 package models
 
+import "go.mongodb.org/mongo-driver/v2/bson"
+
 type Service struct {
-	X      float64 `json:"x"`
-	Y      float64 `json:"y"`
-	Data   string  `json:"data"`
-	Stroke *string `json:"stroke"`
-	Fill   *string `json:"fill"`
+	BaseDBSchema `bson:",inline" json:",inline"`
+	Shape        AnyShape       `bson:"shape" json:"shape"`
+	ColorSchema  *bson.ObjectID `bson:"colorSchema" json:"colorSchema"`
+	IsBorder     bool           `bson:"isBorder" json:"isBorder"`
+	IsFill       bool           `bson:"isFill" json:"isFill"`
 }
