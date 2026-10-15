@@ -13,7 +13,7 @@ Go service (Fiber) with MongoDB for documents, MinIO for building-icon SVGs, JWT
 | [documenation/agent/components.md](documenation/agent/components.md) | Domain objects and how they link |
 | [documenation/agent/design-tokens.md](documenation/agent/design-tokens.md) | Building color schemas used by map clients |
 | [documenation/agent/pages.md](documenation/agent/pages.md) | Client flows and how responses connect |
-| `docs/swagger.json` | Generated OpenAPI, UI at `/docs` while the server is running |
+| `docs/swagger.json` | Generated OpenAPI. UI at `/docs` only when `MODE=DEV` |
 
 ## Routes
 
@@ -42,7 +42,7 @@ Required:
 
 Optional:
 
-- `MODE` — default `DEV`
+- `MODE` — default `DEV`. Swagger UI at `/docs` is mounted only in this mode
 - `LOG_LEVEL` — default `info`
 - `LOG_FORMAT` — default `text`
 - `S3_REQUEST_TIMEOUT_SEC` — default `60`

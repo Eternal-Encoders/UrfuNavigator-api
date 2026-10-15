@@ -13,7 +13,7 @@ Snapshot date: 2026-10-03.
 - Auth: JWT (HS256) after Argon2id password check
 - Routing: A* in `geo/`, including cross-building routes through exit points
 - Search: MongoDB Atlas Search index `point_search` on graph points
-- OpenAPI: Swagger UI at `/docs`, spec generated into `docs/swagger.json`
+- OpenAPI: Swagger UI at `/docs` only when `MODE=DEV`, spec generated into `docs/swagger.json`
 
 Entry point is `main.go`. Routes are registered in `api/api.go`.
 
@@ -24,7 +24,7 @@ HTTP
   GET  {DEFAULT_PATH}/     health, plain text "OK"
   /api/...                 public read API and login
   /admin_api/...           JWT + writer or admine role
-  /docs                    Swagger UI
+  /docs                    Swagger UI, only when MODE=DEV
 
 MongoDB collections
   users, buildings, buildingColorSchemes, floors,
@@ -57,7 +57,7 @@ Optional:
 
 | Variable | Default |
 | --- | --- |
-| `MODE` | `DEV` |
+| `MODE` | `DEV`. Swagger UI is mounted only for this value |
 | `LOG_LEVEL` | `info` |
 | `LOG_FORMAT` | `text` |
 | `S3_REQUEST_TIMEOUT_SEC` | `60` |
@@ -81,7 +81,7 @@ Optional:
 | --- | --- |
 | `documenation/agent/` | Agents working in this repository: components, color tokens, client flows |
 | `documenation/api/specification.md` | Agents in other projects that only need the HTTP contract |
-| `docs/swagger.json` | Generated OpenAPI. Regenerate with `go generate` in the module root |
+| `docs/swagger.json` | Generated OpenAPI. Served at `/docs` only when `MODE=DEV`. Regenerate with `go generate` in the module root |
 | `README.md` | How to run the service |
 
 ## Latest work

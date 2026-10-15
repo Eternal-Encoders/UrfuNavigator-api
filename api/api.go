@@ -1,6 +1,7 @@
 package api
 
 import (
+	"strings"
 	"urfunavigator/index/api/handlers"
 	"urfunavigator/index/auth"
 	"urfunavigator/index/logger"
@@ -15,17 +16,20 @@ type API struct {
 	DefaultPath    string
 	Port           string
 	AllowedOrigins []string
+	Mode           string
 }
 
 func NewAPI(
 	defaultPath string,
 	port string,
 	allowedOrigins []string,
+	mode string,
 ) *API {
 	return &API{
 		DefaultPath:    defaultPath,
 		Port:           port,
 		AllowedOrigins: allowedOrigins,
+		Mode:           mode,
 	}
 }
 
@@ -45,15 +49,18 @@ func (s *API) Run(dataService models.DataService, jwtCfg auth.Config) error {
 		AllowOrigins: s.AllowedOrigins,
 	})
 
-	swaggerCfg := swaggerui.Config{
-		FilePath: "./docs/swagger.json",
-		Title:    "UrfuNavigator Api Doc",
-		CacheAge: 0,
-	}
-
 	app.Use(cors)
 	app.Use(logger.RequestMiddleware())
-	app.Use(swaggerui.New(swaggerCfg))
+	if strings.EqualFold(s.Mode, "DEV") {
+		logger.Info("swagger ui enabled", "path", "/docs")
+		app.Use(swaggerui.New(swaggerui.Config{
+			FilePath: "./docs/swagger.json",
+			Title:    "UrfuNavigator Api Doc",
+			CacheAge: 0,
+		}))
+	} else {
+		logger.Info("swagger ui skipped", "mode", s.Mode)
+	}
 
 	app.Get(s.DefaultPath+"/", MainHandler)
 

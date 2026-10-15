@@ -52,7 +52,7 @@ func main() {
 	)
 	geoService := geo.ConnectGeoService()
 
-	server := api.NewAPI(cfg.DefaultPath, cfg.Port, cfg.Cors)
+	server := api.NewAPI(cfg.DefaultPath, cfg.Port, cfg.Cors, cfg.Mode)
 
 	defer func() {
 		if err := storeConn.Disconnect(); err != nil {
