@@ -18,11 +18,11 @@ var atlasSearchTextPaths = bson.A{
 	"displayableName",
 }
 
-func (s *MongoDB) GetBySearchEngine(name string, limit int) ([]models.GraphPoint, error) {
+func (s *MongoDB) GetBySearchEngine(search models.PointSearch) ([]models.GraphPoint, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), queryTimeout)
 	defer cancel()
 
-	cursor, err := s.Database.Collection(CollGraphPoints).Aggregate(ctx, pointSearchPipeline(name, limit))
+	cursor, err := s.Database.Collection(CollGraphPoints).Aggregate(ctx, pointSearchPipeline(search))
 	if err != nil {
 		return nil, err
 	}
@@ -36,12 +36,28 @@ func (s *MongoDB) GetBySearchEngine(name string, limit int) ([]models.GraphPoint
 	return results, nil
 }
 
-func pointSearchPipeline(query string, limit int) mongo.Pipeline {
-	return mongo.Pipeline{
-		pointSearchStage(query),
+func pointSearchPipeline(search models.PointSearch) mongo.Pipeline {
+	stages := mongo.Pipeline{
+		pointSearchStage(search.Name),
 		pointSearchMatchNamedStage(),
-		pointSearchLimitStage(limit),
 	}
+
+	if search.Type != nil {
+		stages = append(stages, pointSearchMatchTypeStage(*search.Type))
+	}
+
+	if search.FloorId != nil || search.BuildingId != nil {
+		stages = append(stages,
+			pointSearchRankStage(search.FloorId, search.BuildingId),
+			pointSearchRankSortStage(),
+		)
+	}
+
+	stages = append(stages,
+		pointSearchSkipStage(search.Offset),
+		pointSearchLimitStage(search.Length),
+	)
+	return stages
 }
 
 func pointSearchStage(query string) bson.D {
@@ -68,6 +84,49 @@ func pointSearchMatchNamedStage() bson.D {
 	return bson.D{{Key: "$match", Value: bson.D{
 		{Key: "names.0", Value: bson.D{{Key: "$exists", Value: true}}},
 	}}}
+}
+
+func pointSearchMatchTypeStage(pointType string) bson.D {
+	return bson.D{{Key: "$match", Value: bson.D{
+		{Key: "types", Value: pointType},
+	}}}
+}
+
+func pointSearchRankStage(floorID, buildingID *bson.ObjectID) bson.D {
+	branches := bson.A{}
+	if floorID != nil {
+		branches = append(branches, bson.D{
+			{Key: "case", Value: bson.D{{Key: "$eq", Value: bson.A{"$floorId", *floorID}}}},
+			{Key: "then", Value: 0},
+		})
+	}
+	if buildingID != nil {
+		branches = append(branches, bson.D{
+			{Key: "case", Value: bson.D{{Key: "$eq", Value: bson.A{"$buildingId", *buildingID}}}},
+			{Key: "then", Value: 1},
+		})
+	}
+
+	return bson.D{{Key: "$addFields", Value: bson.D{
+		{Key: "rank", Value: bson.D{
+			{Key: "$switch", Value: bson.D{
+				{Key: "branches", Value: branches},
+				{Key: "default", Value: 2},
+			}},
+		}},
+	}}}
+}
+
+func pointSearchRankSortStage() bson.D {
+	return bson.D{{Key: "$sort", Value: bson.D{
+		{Key: "rank", Value: 1},
+		{Key: "score", Value: bson.D{{Key: "$meta", Value: "searchScore"}}},
+		{Key: "_id", Value: 1},
+	}}}
+}
+
+func pointSearchSkipStage(offset int) bson.D {
+	return bson.D{{Key: "$skip", Value: offset}}
 }
 
 func pointSearchLimitStage(limit int) bson.D {

@@ -114,7 +114,11 @@ func PointIdHandler(services models.DataService) fiber.Handler {
 // @Tags points
 // @Produce json
 // @Param name query string true "Search string"
-// @Param length query int false "Max results (1–40, default 40)"
+// @Param length query int false "Page size (1–40, default 40)"
+// @Param offset query int false "Matches to skip after filtering (default 0)"
+// @Param type query string false "Keep points whose types contain this value"
+// @Param buildingId query string false "Rank this building after the requested floor"
+// @Param floorId query string false "Rank this floor first"
 // @Success 200 {array} models.GraphPointResponse
 // @Failure 400 {string} string
 // @Failure 500 {string} string
@@ -139,15 +143,46 @@ func SearchHandler(services models.DataService) fiber.Handler {
 			length = rawLength
 		}
 
-		points, err := services.Store.GetBySearchEngine(query.Name, length)
+		offset := 0
+		if query.Offset != nil {
+			if *query.Offset < 0 {
+				logHandlerWarn(c, "SearchHandler", "negative offset", "offset", *query.Offset)
+				return c.Status(fiber.StatusBadRequest).SendString("offset must not be negative")
+			}
+			offset = *query.Offset
+		}
+
+		buildingID, err := models.ParseObjectIDPtr(query.BuildingId)
 		if err != nil {
-			logHandlerError(c, "SearchHandler", err, "stage", "search", "query", query.Name, "limit", length)
+			logHandlerWarn(c, "SearchHandler", "invalid building id", "building_id", *query.BuildingId)
+			return c.Status(fiber.StatusBadRequest).SendString(err.Error())
+		}
+
+		floorID, err := models.ParseObjectIDPtr(query.FloorId)
+		if err != nil {
+			logHandlerWarn(c, "SearchHandler", "invalid floor id", "floor_id", *query.FloorId)
+			return c.Status(fiber.StatusBadRequest).SendString(err.Error())
+		}
+
+		search := models.PointSearch{
+			Name:       query.Name,
+			Length:     length,
+			Offset:     offset,
+			Type:       query.Type,
+			BuildingId: buildingID,
+			FloorId:    floorID,
+		}
+
+		points, err := services.Store.GetBySearchEngine(search)
+		if err != nil {
+			logHandlerError(c, "SearchHandler", err, "stage", "search", "query", query.Name, "limit", length, "offset", offset)
 			return c.Status(fiber.StatusInternalServerError).SendString("Something went wrong in Search")
 		}
 
 		logHandlerDebug(c, "SearchHandler", "search completed",
 			"query", query.Name,
 			"limit", length,
+			"offset", offset,
 			"count", len(points),
 		)
 

@@ -25,8 +25,8 @@ Room `pointId` and graph point `id` connect a drawn room to a navigation node. G
 ## Search and a single point
 
 ```
-GET /api/search?name=&length=
-        │  Atlas Search, max 40
+GET /api/search?name=&length=&offset=&type=&buildingId=&floorId=
+        │  Atlas Search, page size max 40
         ▼
 GET /api/point?id=
         │  one graph point
@@ -35,7 +35,7 @@ GET /api/points?buildingId=&floorId=&type=&name=&length=
            filtered list, default limit 40
 ```
 
-`GET /api/points` name filter is a case-insensitive regex on `names.name`. `GET /api/search` uses the Atlas index `point_search` (autocomplete on `names.name`, text on description, info, types, displayableName) and only returns points that have at least one name.
+`GET /api/points` name filter is a case-insensitive regex on `names.name`. `GET /api/search` uses the Atlas index `point_search` (autocomplete on `names.name`, text on description, info, types, displayableName) and only returns points that have at least one name. `type` filters search results. `floorId` and `buildingId` only reorder them: requested floor, then requested building, then the rest. `offset` skips matches after that filter. `name` and `length` alone keep the previous call.
 
 ## Route
 

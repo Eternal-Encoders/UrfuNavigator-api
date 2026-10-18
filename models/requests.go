@@ -40,8 +40,12 @@ type MediaUploadBody struct {
 
 // Points Find
 type SearchQuery struct {
-	Name   string `query:"name,required"`
-	Length *int   `query:"length"`
+	Name       string  `query:"name,required"`
+	Length     *int    `query:"length"`
+	Offset     *int    `query:"offset"`
+	Type       *string `query:"type"`
+	BuildingId *string `query:"buildingId"`
+	FloorId    *string `query:"floorId"`
 }
 
 // Auth

@@ -91,7 +91,18 @@ type Store interface {
 	RemoveServices(ids []bson.ObjectID) (*map[bson.ObjectID]*Service, error)
 
 	// Searching
-	GetBySearchEngine(name string, length int) ([]GraphPoint, error)
+	GetBySearchEngine(search PointSearch) ([]GraphPoint, error)
+}
+
+// PointSearch is a parsed public point search.
+// Type filters. BuildingId and FloorId only reorder results.
+type PointSearch struct {
+	Name       string
+	Length     int
+	Offset     int
+	Type       *string
+	BuildingId *bson.ObjectID
+	FloorId    *bson.ObjectID
 }
 
 type BuildingIconURL struct {
