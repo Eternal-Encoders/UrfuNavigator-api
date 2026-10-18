@@ -51,7 +51,7 @@ func pointSearchStage(query string) bson.D {
 			{Key: "must", Value: bson.A{
 				bson.D{{Key: "autocomplete", Value: bson.D{
 					{Key: "query", Value: query},
-					{Key: "path", Value: "names"},
+					{Key: "path", Value: "names.name"},
 				}}},
 			}},
 			{Key: "should", Value: bson.A{

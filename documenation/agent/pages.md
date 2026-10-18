@@ -35,7 +35,7 @@ GET /api/points?buildingId=&floorId=&type=&name=&length=
            filtered list, default limit 40
 ```
 
-`GET /api/points` name filter is a case-insensitive regex on `names.name`. `GET /api/search` uses the Atlas index `point_search` (autocomplete on `names`, text on description, info, types, displayableName) and only returns points that have at least one name.
+`GET /api/points` name filter is a case-insensitive regex on `names.name`. `GET /api/search` uses the Atlas index `point_search` (autocomplete on `names.name`, text on description, info, types, displayableName) and only returns points that have at least one name.
 
 ## Route
 
