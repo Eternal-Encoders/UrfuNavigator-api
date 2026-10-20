@@ -10,6 +10,7 @@ import (
 )
 
 const atlasSearchIndex = "point_search"
+const atlasSynonymsStore = "synonym_mapping"
 
 var atlasSearchTextPaths = bson.A{
 	"description",
@@ -64,7 +65,7 @@ func pointSearchStage(query string) bson.D {
 	return bson.D{{Key: "$search", Value: bson.D{
 		{Key: "index", Value: atlasSearchIndex},
 		{Key: "compound", Value: bson.D{
-			{Key: "must", Value: bson.A{
+			{Key: "should", Value: bson.A{
 				bson.D{{Key: "autocomplete", Value: bson.D{
 					{Key: "query", Value: query},
 					{Key: "path", Value: "names.name"},
@@ -74,6 +75,7 @@ func pointSearchStage(query string) bson.D {
 				bson.D{{Key: "text", Value: bson.D{
 					{Key: "query", Value: query},
 					{Key: "path", Value: atlasSearchTextPaths},
+					{Key: "synonyms", Value: atlasSynonymsStore},
 				}}},
 			}},
 		}},
